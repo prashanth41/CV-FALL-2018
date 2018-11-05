@@ -3,6 +3,11 @@ Gets to 99.25% test accuracy after 12 epochs
 (there is still a lot of margin for parameter tuning).
 16 seconds per epoch on a GRID K520 GPU.
 '''
+'''Trains a simple convnet on the MNIST dataset.
+Gets to 99.25% test accuracy after 12 epochs
+(there is still a lot of margin for parameter tuning).
+16 seconds per epoch on a GRID K520 GPU.
+'''
 
 from __future__ import print_function
 import keras
@@ -11,10 +16,12 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
+import matplotlib.pyplot as plt
+
 
 batch_size = 128
 num_classes = 10
-epochs = 12
+epochs = 30
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -59,7 +66,7 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
-model.fit(x_train, y_train,
+history=model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
@@ -67,3 +74,35 @@ model.fit(x_train, y_train,
 score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
+def plot_history(history):
+    loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' not in s]
+    val_loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' in s]
+    acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' not in s]
+    val_acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' in s]
+    
+    if len(loss_list) == 0:
+        print('Loss is missing in history')
+        return 
+    
+    ## As loss always exists
+    epochs = range(1,len(history.history[loss_list[0]]) + 1)
+    
+
+    
+    ## Accuracy
+    plt.figure(2)
+    for l in acc_list:
+        plt.plot(epochs, history.history[l], 'b', label='Training accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
+    for l in val_acc_list:    
+        plt.plot(epochs, history.history[l], 'g', label='Validation accuracy (' + str(format(history.history[l][-1],'.5f'))+')')
+
+    plt.title('Model Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.show()
+    
+    
+    
+plot_history(history)
